@@ -1,0 +1,44 @@
+{
+  "name": "nextstickies",
+  "productName": "NextStickies",
+  "version": "0.0.0",
+  "description": "Sticky notes stored as Markdown and synced with Nextcloud Notes over WebDAV",
+  "author": "jimytar",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "main": "dist/main.cjs",
+  "scripts": {
+    "build": "node build.mjs",
+    "start": "node build.mjs && electron .",
+    "test": "vitest run",
+    "typecheck": "tsc -p .",
+    "pack:win": "electron-builder --win dir",
+    "pack:linux": "electron-builder --linux AppImage"
+  },
+  "dependencies": {
+    "@tiptap/core": "3.31.4",
+    "@tiptap/extension-image": "3.31.4",
+    "@tiptap/extension-list": "3.31.4",
+    "@tiptap/extension-placeholder": "3.31.4",
+    "@tiptap/markdown": "3.31.4",
+    "@tiptap/pm": "3.31.4",
+    "@tiptap/starter-kit": "3.31.4",
+    "emoji-picker-element": "1.29.1",
+    "emoji-picker-element-data": "1.8.0",
+    "fast-xml-parser": "5.11.2"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "electron": "44.7.0",
+    "electron-builder": "26.15.3",
+    "esbuild": "0.28.2",
+    "jsdom": "30.1.2",
+    "typescript": "7.0.2",
+    "vitest": "5.0.4"
+  },
+  "allowScripts": {
+    "electron@44.7.0": true,
+    "esbuild@0.28.2": true
+  }
+}

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' file:; img-src 'self' file: notes: data: blob:; style-src 'self' file: 'unsafe-inline'; connect-src 'self' file:">
+  <title>Sticky note</title>
+  <link rel="stylesheet" href="common.css">
+  <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+  <header class="drag" id="header">
+    <button class="icon-btn" id="new" title="New note" data-icon="plus"></button>
+    <span class="spacer"></span>
+    <button class="icon-btn" id="menu" title="Color, notes list, delete" data-icon="more"></button>
+    <button class="icon-btn" id="close" title="Close note" data-icon="close"></button>
+  </header>
+  <div id="editor"></div>
+  <div id="error" role="alert" hidden></div>
+  <div id="emoji-pop" hidden>
+    <emoji-picker class="dark"></emoji-picker>
+  </div>
+  <dialog id="link-dialog">
+    <form method="dialog">
+      <label>Link URL <input type="text" placeholder="https://…"></label>
+      <menu><button class="text-btn" value="ok">OK</button><button class="text-btn" value="cancel">Cancel</button></menu>
+    </form>
+  </dialog>
+  <input type="file" id="file" accept="image/*" multiple hidden>
+  <nav id="toolbar" aria-label="Formatting">
+    <button data-action="heading" title="Heading">H</button>
+    <button data-action="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+    <button data-action="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+    <button data-action="strike" title="Strikethrough"><s>S</s></button>
+    <button data-action="bullets" title="Bullet list">&#x2022;&#x2261;</button>
+    <button data-action="tasks" title="Checklist">&#x2611;</button>
+    <button data-action="link" title="Link (Ctrl+click opens)">&#x1F517;&#xFE0E;</button>
+    <button data-action="image" title="Add image (or paste)">&#x1F5BC;&#xFE0E;</button>
+    <button data-action="emoji" title="Emoji">&#x263A;&#xFE0E;</button>
+  </nav>
+  <script src="sticky.js"></script>
+</body>
+</html>

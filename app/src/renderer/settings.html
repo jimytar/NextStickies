@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>Settings</title>
+  <link rel="stylesheet" href="common.css">
+  <style>
+    body { background: var(--win-bg); padding: 20px; }
+    h1 { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
+    label { display: block; margin-top: 12px; }
+    label span { display: block; margin-bottom: 4px; }
+    .check { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+    .check input { accent-color: var(--accent); }
+    #result { color: var(--muted); margin-top: 14px; min-height: 3em; overflow-wrap: anywhere; }
+    .buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+    footer { color: var(--muted); font-size: 11px; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <form id="form">
+    <h1>Nextcloud sync</h1>
+    <label><span>Server URL</span><input type="text" id="server" placeholder="https://cloud.example.com" autocomplete="url"></label>
+    <label><span>User name</span><input type="text" id="user" autocomplete="username"></label>
+    <label><span>App password (Nextcloud → Settings → Security)</span><input type="password" id="password" autocomplete="current-password"></label>
+    <label><span>Notes folder</span><input type="text" id="folder"></label>
+    <label class="check"><input type="checkbox" id="login"><span id="login-label">Start on login</span></label>
+    <label class="check"><input type="checkbox" id="minimized"><span>Start minimized to tray</span></label>
+    <div id="result" role="status"></div>
+    <div class="buttons">
+      <button type="button" class="text-btn" id="sync">Sync now</button>
+      <button type="submit" class="text-btn" id="save">Test &amp; save</button>
+      <button type="button" class="text-btn" id="close">Close</button>
+    </div>
+  </form>
+  <footer id="version"></footer>
+  <script src="settings.js"></script>
+</body>
+</html>

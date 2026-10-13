@@ -1,0 +1,124 @@
+name: Build & Release 🚀
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', 'LICENSE']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # Signing switches on once the SignPath repo variable exists (Settings → Secrets and variables → Actions).
+  SIGN: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' && github.event_name != 'pull_request' }}
+
+jobs:
+  build:
+    runs-on: next-stickies-runner
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+        with:
+          # Full history + tags: the version is derived from commits since the last vX.Y.Z tag.
+          fetch-depth: '0'
+          ref: ${{ github.sha }}
+
+      - name: Next version
+        id: version
+        run: |
+          VERSION="$(scripts/next-version.sh)"
+          if [ -z "${VERSION}" ]; then
+            echo "No commits since the last release - building only."
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')"
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+          echo "Version: ${VERSION}"
+
+      - name: Build & test app ⌛
+        run: ./build.sh app
+
+      # ---- Code signing (SignPath Foundation); skipped until configured -------------------------------------
+      - name: Upload unsigned app for signing
+        id: unsigned-app
+        if: env.SIGN == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-unsigned
+          path: out/app/
+
+      - name: Sign app
+        if: env.SIGN == 'true'
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: nextstickies
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: app
+          github-artifact-id: ${{ steps.unsigned-app.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: out/app-signed
+
+      - name: Use signed app
+        if: env.SIGN == 'true'
+        run: rm -rf out/app && mv out/app-signed out/app
+
+      - name: Build installer ⌛
+        run: ./build.sh installer out/app
+
+      - name: Upload unsigned installer for signing
+        id: unsigned-installer
+        if: env.SIGN == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-unsigned
+          path: out/installer/
+
+      - name: Sign installer
+        if: env.SIGN == 'true'
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: nextstickies
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: installer
+          github-artifact-id: ${{ steps.unsigned-installer.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: out/installer-signed
+
+      - name: Use signed installer
+        if: env.SIGN == 'true'
+        run: rm -rf out/installer && mv out/installer-signed out/installer
+      # -------------------------------------------------------------------------------------------------------
+
+      - name: Upload packages (build artifact)
+        if: steps.version.outputs.release != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: |
+            out/installer/*.exe
+            out/linux/*.AppImage
+
+      - name: Release
+        if: steps.version.outputs.release == 'true'
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: NextStickies ${{ env.VERSION }}
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          files: |
+            out/installer/*.exe
+            out/linux/*.AppImage

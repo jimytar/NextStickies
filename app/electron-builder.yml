@@ -1,0 +1,24 @@
+# Windows: unpacked app dir only (installer/NextStickies.nsi packages it, so SignPath can sign the exe first).
+# Linux: AppImage.
+appId: com.jimytar.nextstickies
+productName: NextStickies
+executableName: NextStickies
+copyright: MIT License
+directories:
+  output: release
+  buildResources: build
+files:
+  - dist/**
+  - package.json
+asar: true
+win:
+  target: dir
+  icon: build/icon.ico
+linux:
+  target: AppImage
+  icon: build/icon.png
+  category: Office
+  executableName: nextstickies
+  synopsis: Sticky notes synced with Nextcloud Notes
+  artifactName: NextStickies-${version}-x86_64.AppImage
+publish: null

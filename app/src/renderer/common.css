@@ -1,0 +1,22 @@
+:root {
+  --accent: #e6b905;
+  --win-bg: #202020;
+  --card-bg: #333333;
+  --fg: #f0f0f0;
+  --muted: #9a9a9a;
+  --field: #3a3a3a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; color: var(--fg); font: 14px/1.5 "Segoe UI", "Ubuntu", "Noto Sans", system-ui, sans-serif, "Segoe UI Emoji", "Noto Color Emoji"; }
+.drag { -webkit-app-region: drag; user-select: none; }
+.drag button, .drag input { -webkit-app-region: no-drag; }
+.icon-btn { background: none; border: none; color: #c8c8c8; width: 36px; height: 32px; border-radius: 4px; display: inline-grid; place-items: center; cursor: pointer; }
+.icon-btn:hover { background: rgba(255,255,255,.13); }
+.icon-btn:focus-visible { outline: 2px solid var(--accent); }
+.text-btn { background: var(--field); color: var(--fg); border: 0; border-radius: 4px; padding: 6px 14px; cursor: pointer; font: inherit; }
+.text-btn:hover { background: #4a4a4a; }
+.text-btn:disabled { color: #777; cursor: default; }
+input[type=text], input[type=password], input[type=search] { background: var(--field); color: var(--fg); border: 1px solid #555; border-radius: 4px; padding: 6px 8px; font: inherit; width: 100%; }
+input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+[hidden] { display: none !important; }

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>NextStickies</title>
+  <link rel="stylesheet" href="common.css">
+  <link rel="stylesheet" href="list.css">
+</head>
+<body>
+  <header class="drag">
+    <button class="icon-btn" id="new" title="New note (Ctrl+N)" data-icon="plus"></button>
+    <span class="spacer"></span>
+    <button class="icon-btn" id="settings" title="Settings" data-icon="gear"></button>
+    <button class="icon-btn" id="close" title="Close (keeps running in the tray)" data-icon="close"></button>
+  </header>
+  <h1 class="drag">NextStickies</h1>
+  <div class="search">
+    <input type="search" id="search" placeholder="Search…" aria-label="Search notes">
+    <span data-icon="search"></span>
+  </div>
+  <div id="status" role="status"></div>
+  <main id="cards"></main>
+  <script src="list.js"></script>
+</body>
+</html>
