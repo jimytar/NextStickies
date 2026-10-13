@@ -12,9 +12,15 @@
   <header class="drag" id="header">
     <button class="icon-btn" id="new" title="New note" data-icon="plus"></button>
     <span class="spacer"></span>
+    <button class="icon-btn" id="pin" title="Keep on top" aria-pressed="false" data-icon="pin"></button>
     <button class="icon-btn" id="menu" title="Color, notes list, delete" data-icon="more"></button>
     <button class="icon-btn" id="close" title="Close note" data-icon="close"></button>
   </header>
+  <div id="menu-pop" role="menu" hidden>
+    <div id="swatches"></div>
+    <button role="menuitem" id="show-list"><span data-icon="list"></span>Notes list</button>
+    <button role="menuitem" id="delete"><span data-icon="trash"></span>Delete note</button>
+  </div>
   <div id="editor"></div>
   <div id="error" role="alert" hidden></div>
   <div id="emoji-pop" hidden>

@@ -20,3 +20,14 @@ html, body { margin: 0; height: 100%; color: var(--fg); font: 14px/1.5 "Segoe UI
 input[type=text], input[type=password], input[type=search] { background: var(--field); color: var(--fg); border: 1px solid #555; border-radius: 4px; padding: 6px 8px; font: inherit; width: 100%; }
 input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
 [hidden] { display: none !important; }
+dialog.confirm { background: #2b2b2b; color: var(--fg); border: 1px solid #5a5a5a; border-radius: 0; padding: 22px 24px 20px; width: min(340px, calc(100vw - 16px)); }
+dialog.confirm::backdrop { background: rgba(0,0,0,.35); }
+dialog.confirm form { display: grid; gap: 12px; }
+dialog.confirm p { margin: 0; font-size: 16px; }
+dialog.confirm label { display: flex; align-items: center; gap: 10px; }
+dialog.confirm input { width: 20px; height: 20px; margin: 0; accent-color: #3a9fd0; }
+dialog.confirm menu { display: flex; justify-content: flex-end; gap: 12px; margin: 6px 0 0; padding: 0; }
+dialog.confirm button { min-width: 100px; padding: 6px 14px; border-radius: 0; font-weight: 600; }
+dialog.confirm .primary { background: #3a9fd0; color: #111; border: 0; cursor: pointer; font: inherit; font-weight: 600; }
+dialog.confirm .primary:hover { background: #4cb0e0; }
+dialog.confirm button:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }

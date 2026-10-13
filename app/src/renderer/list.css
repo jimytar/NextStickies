@@ -10,7 +10,8 @@ main { flex: 1; overflow-y: auto; }
 .card:hover, .card:focus-visible { background: #3b3b3b; outline: none; }
 .card time { display: block; text-align: right; color: var(--c); font-size: 11px; }
 .card p { margin: 2px 0 0; white-space: pre-line; max-height: 140px; overflow: hidden; }
-.card .del { position: absolute; left: 4px; top: 2px; width: 24px; height: 24px; opacity: 0; }
+.card .del { position: absolute; right: 4px; top: 2px; width: 24px; height: 24px; opacity: 0; }
 .card:hover .del, .card:focus-within .del { opacity: 1; }
+.card:hover time, .card:focus-within time { visibility: hidden; }
 #sync.spinning svg { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }

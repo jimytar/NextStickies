@@ -13,9 +13,11 @@ export interface Settings {
   /** 1.x (WPF) DPAPI blob; migrated to EncryptedPassword on first start. */
   ProtectedPassword?: string
   StartMinimized: boolean
+  /** Ask before deleting a note ("Don't ask me again" turns it off). */
+  ConfirmDelete: boolean
 }
 
-const defaults: Settings = { ServerUrl: '', User: '', Folder: 'Notes', StartMinimized: false }
+const defaults: Settings = { ServerUrl: '', User: '', Folder: 'Notes', StartMinimized: false, ConfirmDelete: true }
 
 export function loadSettings(file: string): Settings {
   const s: Settings = { ...defaults, ...(fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {}) }

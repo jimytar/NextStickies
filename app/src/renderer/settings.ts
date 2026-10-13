@@ -10,6 +10,7 @@ void api.settings.get().then(s => {
   password.placeholder = s.hasPassword ? 'Saved — leave empty to keep' : ''
   $<HTMLInputElement>('login').checked = s.startWithLogin
   $<HTMLInputElement>('minimized').checked = s.startMinimized
+  $<HTMLInputElement>('confirm-delete').checked = s.confirmDelete
   $('login-label').textContent = s.loginLabel
   $('version').textContent = `NextStickies ${s.version}`
 })
@@ -29,6 +30,7 @@ $<HTMLFormElement>('form').onsubmit = async e => {
       folder: $<HTMLInputElement>('folder').value,
       startWithLogin: $<HTMLInputElement>('login').checked,
       startMinimized: $<HTMLInputElement>('minimized').checked,
+      confirmDelete: $<HTMLInputElement>('confirm-delete').checked,
     })
     result.textContent = res.message
     if (res.ok) {

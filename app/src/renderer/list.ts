@@ -1,3 +1,4 @@
+import { confirmDelete } from './confirm'
 import { renderIcons } from './icons'
 
 const api = window.api
@@ -23,6 +24,10 @@ function showStatus(s: string) {
 api.onStatus(showStatus)
 void api.status().then(showStatus)
 
+async function remove(id: string) {
+  if (await confirmDelete()) api.list.remove(id)
+}
+
 async function refresh() {
   const notes = await api.list.notes(search.value)
   cards.replaceChildren(...notes.map(n => {
@@ -40,13 +45,13 @@ async function refresh() {
     del.dataset.icon = 'close'
     del.onclick = e => {
       e.stopPropagation()
-      api.list.remove(n.id)
+      void remove(n.id)
     }
     card.append(del, time, text)
     card.onclick = () => api.list.open(n.id)
     card.onkeydown = e => {
       if (e.key === 'Enter') api.list.open(n.id)
-      if (e.key === 'Delete') api.list.remove(n.id)
+      if (e.key === 'Delete') void remove(n.id)
     }
     return card
   }))

@@ -1,8 +1,9 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, nativeTheme, net, protocol, screen, shell, Tray } from 'electron'
-import { NOTE_COLORS, NoteMeta, NoteStore, parentOf, titleOf } from './store'
+import { app, BrowserWindow, ipcMain, Menu, nativeImage, nativeTheme, net, protocol, screen, shell, Tray } from 'electron'
+import { NOTE_COLORS } from '../colors'
+import { NoteMeta, NoteStore, parentOf, titleOf } from './store'
 import { SyncEngine, SyncResult } from './sync'
 import { WebDavClient } from './webdav'
 import * as cfg from './settings'
@@ -186,7 +187,7 @@ function showList() {
 function showSettings() {
   if (settingsWin) return settingsWin.focus()
   settingsWin = new BrowserWindow({
-    width: 440, height: 600, resizable: false, backgroundColor: '#202020', title: 'Settings', icon: icon(),
+    width: 440, height: 630, resizable: false, backgroundColor: '#202020', title: 'Settings', icon: icon(),
     parent: list ?? undefined, autoHideMenuBar: true, webPreferences,
   })
   settingsWin.loadFile(path.join(ASSETS, 'settings.html'))
@@ -215,13 +216,8 @@ function preview(markdown: string): string {
   return text.split('\n').map(l => l.trim()).filter(l => l && l !== '---').slice(0, 6).join('\n')
 }
 
-async function deleteNote(meta: NoteMeta, parent?: BrowserWindow) {
-  const options = {
-    type: 'warning' as const, buttons: ['Delete', 'Cancel'], defaultId: 1, cancelId: 1,
-    title: 'Delete note', message: 'Delete this note? It is also deleted from Nextcloud.',
-  }
-  const { response } = parent ? await dialog.showMessageBox(parent, options) : await dialog.showMessageBox(options)
-  if (response !== 0) return
+/** Deletes locally and (via sync) on Nextcloud. The renderer has already asked for confirmation. */
+function deleteNote(meta: NoteMeta) {
   const s = stickies.get(meta.Id)
   if (s) closeDiscarded(s)
   store.deleteNote(meta)
@@ -238,7 +234,7 @@ function openSticky(meta: NoteMeta) {
 
   const bounds = { width: meta.Width, height: meta.Height, ...position(meta) }
   const win = new BrowserWindow({
-    ...bounds, minWidth: 220, minHeight: 160, frame: false, backgroundColor: '#333333', show: false,
+    ...bounds, minWidth: 220, minHeight: 160, frame: false, backgroundColor: '#333333', show: false, alwaysOnTop: !!meta.OnTop,
     title: meta.Path ? titleOf(meta.Path) : 'New note', icon: icon(), webPreferences,
   })
   const s: Sticky = { win, meta, lastSaved: '', pending: null, discarded: false }
@@ -287,7 +283,7 @@ function baseUrl(meta: NoteMeta) {
 
 function loadPayload(s: Sticky) {
   s.lastSaved = s.meta.Path === null ? '' : store.readNote(s.meta.Path) ?? ''
-  return { markdown: s.lastSaved, baseUrl: baseUrl(s.meta), color: s.meta.Color }
+  return { markdown: s.lastSaved, baseUrl: baseUrl(s.meta), color: s.meta.Color, onTop: !!s.meta.OnTop }
 }
 
 /** Writes pending editor text to disk. Empty new notes are not created. */
@@ -347,26 +343,13 @@ function openExternal(url: string) {
   }
 }
 
-function showStickyMenu(s: Sticky) {
-  Menu.buildFromTemplate([
-    ...NOTE_COLORS.map(([name, hex]) => ({
-      label: name, type: 'radio' as const, checked: hex.toLowerCase() === s.meta.Color.toLowerCase(),
-      icon: nativeImage.createFromDataURL(swatch(hex)),
-      click: () => {
-        s.meta.Color = hex
-        store.saveMeta()
-        s.win.webContents.send('sticky:color', hex)
-        notesChanged()
-      },
-    })),
-    { type: 'separator' },
-    { label: 'Notes list', click: showList },
-    { label: 'Delete note', click: () => void deleteNote(s.meta, s.win) },
-  ]).popup({ window: s.win })
+function setColor(s: Sticky, hex: string) {
+  if (!NOTE_COLORS.some(([, c]) => c === hex)) return
+  s.meta.Color = hex
+  store.saveMeta()
+  s.win.webContents.send('sticky:color', hex)
+  notesChanged()
 }
-
-const swatch = (hex: string) =>
-  'data:image/svg+xml;base64,' + Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"><rect width="14" height="14" rx="2" fill="${hex}"/></svg>`).toString('base64')
 
 // ---- IPC ---------------------------------------------------------------------------------------------------
 
@@ -389,9 +372,22 @@ function registerIpc() {
   })
   ipcMain.on('sticky:openLink', (_e, href: string) => openExternal(href))
   ipcMain.on('sticky:new', () => openSticky(store.newMeta()))
-  ipcMain.on('sticky:menu', e => {
+  ipcMain.on('sticky:color', (e, hex: string) => {
     const s = stickyOf(e.sender)
-    if (s) showStickyMenu(s)
+    if (s) setColor(s, hex)
+  })
+  ipcMain.on('sticky:onTop', (e, on: boolean) => {
+    const s = stickyOf(e.sender)
+    if (!s) return
+    s.meta.OnTop = !!on
+    store.saveMeta()
+    s.win.setAlwaysOnTop(s.meta.OnTop)
+    s.win.webContents.send('sticky:onTop', s.meta.OnTop)
+  })
+  ipcMain.on('sticky:showList', showList)
+  ipcMain.on('sticky:delete', e => {
+    const s = stickyOf(e.sender)
+    if (s) deleteNote(s.meta)
   })
   /** The × button: hide the note (it stays in the list). A note that was never typed in is dropped. */
   ipcMain.on('sticky:close', e => {
@@ -413,21 +409,27 @@ function registerIpc() {
   ipcMain.on('list:new', () => openSticky(store.newMeta()))
   ipcMain.on('list:delete', (_e, id: string) => {
     const meta = store.metaById(id)
-    if (meta) void deleteNote(meta, list ?? undefined)
+    if (meta) deleteNote(meta)
   })
   ipcMain.on('list:settings', showSettings)
   ipcMain.on('list:close', () => list?.close())
   ipcMain.handle('status', () => status)
+  ipcMain.handle('confirmDelete:get', () => settings.ConfirmDelete)
+  ipcMain.on('confirmDelete:set', (_e, on: boolean) => {
+    settings.ConfirmDelete = !!on
+    cfg.saveSettings(SETTINGS_FILE, settings)
+  })
 
   // Settings
   ipcMain.handle('settings:get', () => ({
     serverUrl: settings.ServerUrl, user: settings.User, folder: settings.Folder,
     hasPassword: !!settings.EncryptedPassword, startWithLogin: cfg.getStartWithLogin(),
-    startMinimized: settings.StartMinimized, version: app.getVersion(),
+    startMinimized: settings.StartMinimized, confirmDelete: settings.ConfirmDelete, version: app.getVersion(),
     loginLabel: process.platform === 'win32' ? 'Start with Windows' : 'Start on login',
   }))
-  ipcMain.handle('settings:save', async (_e, p: { serverUrl: string; user: string; password: string; folder: string; startWithLogin: boolean; startMinimized: boolean }) => {
+  ipcMain.handle('settings:save', async (_e, p: { serverUrl: string; user: string; password: string; folder: string; startWithLogin: boolean; startMinimized: boolean; confirmDelete: boolean }) => {
     cfg.setStartWithLogin(p.startWithLogin)
+    settings.ConfirmDelete = !!p.confirmDelete
     settings.StartMinimized = p.startMinimized // app preferences apply even if the connection test fails
     cfg.saveSettings(SETTINGS_FILE, settings)
 

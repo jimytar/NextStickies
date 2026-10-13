@@ -1,8 +1,10 @@
 import { Editor } from '@tiptap/core'
 import Placeholder from '@tiptap/extension-placeholder'
 import 'emoji-picker-element'
+import { NOTE_COLORS } from '../colors'
+import { confirmDelete } from './confirm'
 import { noteExtensions } from './extensions'
-import { renderIcons } from './icons'
+import { icons, renderIcons } from './icons'
 import type { LoadPayload } from './api'
 
 const api = window.api.sticky
@@ -10,10 +12,59 @@ const api = window.api.sticky
 const emojiData = new URL('emoji-data.json', location.href).href
 const base = document.head.appendChild(document.createElement('base'))
 
-renderIcons()
 document.getElementById('new')!.onclick = () => api.newNote()
-document.getElementById('menu')!.onclick = () => api.menu()
 document.getElementById('close')!.onclick = () => api.close()
+const pin = document.getElementById('pin')!
+pin.onclick = () => api.setOnTop(pin.getAttribute('aria-pressed') !== 'true')
+function setOnTop(on: boolean) {
+  pin.setAttribute('aria-pressed', String(on))
+  pin.title = on ? 'Stop keeping on top' : 'Keep on top'
+}
+
+// Note menu (in-window, like Windows Sticky Notes): color strip, notes list, delete.
+const menu = document.getElementById('menu-pop')!
+const swatches = document.getElementById('swatches')!
+for (const [name, hex] of NOTE_COLORS) {
+  const b = document.createElement('button')
+  b.title = name
+  b.setAttribute('aria-label', name)
+  b.dataset.color = hex
+  b.style.background = hex
+  b.onclick = () => {
+    api.setColor(hex)
+    toggleMenu(false)
+  }
+  swatches.append(b)
+}
+function toggleMenu(open = menu.hidden) {
+  menu.hidden = !open
+  if (open) (swatches.querySelector('[aria-pressed=true]') as HTMLElement ?? swatches.firstElementChild)?.focus()
+}
+document.getElementById('menu')!.onclick = e => {
+  e.stopPropagation()
+  toggleMenu()
+}
+document.getElementById('show-list')!.onclick = () => {
+  toggleMenu(false)
+  api.showList()
+}
+document.getElementById('delete')!.onclick = async () => {
+  toggleMenu(false)
+  if (await confirmDelete()) api.remove()
+}
+document.addEventListener('mousedown', e => {
+  if (!menu.hidden && !menu.contains(e.target as Node) && !(e.target as Element).closest('#menu')) toggleMenu(false)
+})
+renderIcons()
+
+// Unfocused: the header shrinks to a colored strip and the toolbar hides.
+const setFocused = (on: boolean) => document.body.classList.toggle('blurred', !on)
+window.addEventListener('focus', () => setFocused(true))
+window.addEventListener('blur', () => {
+  setFocused(false)
+  toggleMenu(false)
+})
+setFocused(document.hasFocus())
 
 const editor = new Editor({
   element: document.getElementById('editor')!,
@@ -44,12 +95,14 @@ function load(p: LoadPayload) {
   // Relative image paths (.attachments.<id>/x.png) resolve against the note's folder.
   base.href = p.baseUrl
   setColor(p.color)
+  setOnTop(p.onTop)
   loading = true
   editor.commands.setContent(p.markdown, { contentType: 'markdown' })
   loading = false
 }
 api.onLoad(load)
 api.onColor(setColor)
+api.onOnTop(setOnTop)
 void api.init().then(p => {
   if (p) load(p)
   editor.commands.focus('end')
@@ -57,6 +110,11 @@ void api.init().then(p => {
 
 function setColor(color: string) {
   document.documentElement.style.setProperty('--accent', color)
+  for (const b of swatches.querySelectorAll<HTMLElement>('button')) {
+    const current = b.dataset.color!.toLowerCase() === color.toLowerCase()
+    b.setAttribute('aria-pressed', String(current))
+    b.innerHTML = current ? icons.check : ''
+  }
 }
 
 function sendImages(files: FileList | undefined | null): boolean {
@@ -137,6 +195,9 @@ picker.addEventListener('emoji-click', (e: any) => {
   emojiPop.hidden = true
 })
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') emojiPop.hidden = true
+  if (e.key === 'Escape') {
+    emojiPop.hidden = true
+    toggleMenu(false)
+  }
   if (e.ctrlKey && e.key.toLowerCase() === 'n') api.newNote()
 })

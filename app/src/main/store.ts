@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import { NOTE_COLORS } from '../colors'
 
 /** Sticky-only window state; kept on this PC only so the .md files stay clean for Nextcloud Notes. */
 export interface NoteMeta {
@@ -15,13 +16,11 @@ export interface NoteMeta {
   Width: number
   Height: number
   IsOpen: boolean
+  /** Window stays above other windows (per note, this PC only). */
+  OnTop?: boolean
 }
 
-export const DEFAULT_COLOR = '#e6b905'
-export const NOTE_COLORS: [name: string, hex: string][] = [
-  ['Yellow', '#e6b905'], ['Green', '#6fd262'], ['Pink', '#ea86c2'], ['Purple', '#c78eff'],
-  ['Blue', '#5ac0e7'], ['Gray', '#aaaaaa'], ['Charcoal', '#555555'],
-]
+export const DEFAULT_COLOR = NOTE_COLORS[0][1]
 
 export interface NoteInfo { path: string; title: string; content: string; modified: Date }
 

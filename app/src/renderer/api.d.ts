@@ -1,8 +1,8 @@
-export interface LoadPayload { markdown: string; baseUrl: string; color: string }
+export interface LoadPayload { markdown: string; baseUrl: string; color: string; onTop: boolean }
 export interface NoteCard { id: string; color: string; time: string; preview: string }
 export interface SettingsView {
   serverUrl: string; user: string; folder: string; hasPassword: boolean
-  startWithLogin: boolean; startMinimized: boolean; version: string; loginLabel: string
+  startWithLogin: boolean; startMinimized: boolean; confirmDelete: boolean; version: string; loginLabel: string
 }
 
 declare global {
@@ -15,10 +15,14 @@ declare global {
         pasteImage(data: Uint8Array, mime: string, name: string): Promise<{ src?: string; error?: string }>
         openLink(href: string): void
         newNote(): void
-        menu(): void
+        setColor(hex: string): void
+        setOnTop(on: boolean): void
+        showList(): void
+        remove(): void
         close(): void
         onLoad(cb: (p: LoadPayload) => void): void
         onColor(cb: (color: string) => void): void
+        onOnTop(cb: (on: boolean) => void): void
       }
       list: {
         notes(query: string): Promise<NoteCard[]>
@@ -36,6 +40,7 @@ declare global {
       status(): Promise<string>
       onStatus(cb: (s: string) => void): void
       syncNow(): void
+      confirmDelete: { get(): Promise<boolean>; set(on: boolean): void }
     }
   }
 }
