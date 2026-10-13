@@ -4,6 +4,11 @@ Sticky notes for Windows and Linux stored as `.md` files and two-way synced
 with a Nextcloud folder (default `/Notes`) over WebDAV, so the Nextcloud Notes app (web/Android/iOS) and the
 desktop stickies on every machine show the same notes.
 
+<p>
+  <img src="docs/screenshots/notes-list.png" alt="Notes list" height="480">
+  <img src="docs/screenshots/sticky-note.png" alt="Sticky note with formatting toolbar" height="240">
+</p>
+
 - WYSIWYG editor (Tiptap — same engine as Nextcloud Text): heading, bold, italic, strikethrough, bullets,
   checklists, links, emoji picker, paste/drop/attach images. Files stay plain markdown.
 - Images are stored the Nextcloud way: `.attachments.<fileId>/name.png` next to the note.
