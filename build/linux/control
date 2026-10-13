@@ -1,0 +1,11 @@
+Package: nextstickies
+Version: VERSION
+Architecture: amd64
+Maintainer: jimytar <https://github.com/jimytar/NextStickies>
+Depends: libc6 (>= 2.36), libgtk-3-0t64 | libgtk-3-0, libwebkit2gtk-4.1-0
+Section: utils
+Priority: optional
+Homepage: https://github.com/jimytar/NextStickies
+Description: Sticky notes synced with Nextcloud Notes
+ Desktop sticky notes stored as Markdown files and two-way synced with a
+ Nextcloud folder over WebDAV.

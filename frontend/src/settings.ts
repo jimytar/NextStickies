@@ -1,4 +1,5 @@
-const api = window.api
+import { api } from './api'
+
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T
 const result = $<HTMLDivElement>('result')
 const password = $<HTMLInputElement>('password')
@@ -40,7 +41,7 @@ $<HTMLFormElement>('form').onsubmit = async e => {
   }
 }
 $('sync').onclick = () => api.syncNow()
-$('close').onclick = () => window.close()
+$('close').onclick = () => api.settings.close()
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') window.close()
+  if (e.key === 'Escape') api.settings.close()
 })

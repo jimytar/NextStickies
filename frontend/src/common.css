@@ -9,8 +9,8 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; color: var(--fg); font: 14px/1.5 "Segoe UI", "Ubuntu", "Noto Sans", system-ui, sans-serif, "Segoe UI Emoji", "Noto Color Emoji"; }
-.drag { -webkit-app-region: drag; user-select: none; }
-.drag button, .drag input { -webkit-app-region: no-drag; }
+.drag { --wails-draggable: drag; user-select: none; }
+.drag button, .drag input { --wails-draggable: no-drag; }
 .icon-btn { background: none; border: none; color: #c8c8c8; width: 36px; height: 32px; border-radius: 4px; display: inline-grid; place-items: center; cursor: pointer; }
 .icon-btn:hover { background: rgba(255,255,255,.13); }
 .icon-btn:focus-visible { outline: 2px solid var(--accent); }

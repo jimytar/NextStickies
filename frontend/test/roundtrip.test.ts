@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest'
 import { Editor } from '@tiptap/core'
-import { noteExtensions } from '../src/renderer/extensions'
+import { noteExtensions } from '../src/extensions'
 
 function roundtrip(md: string): string {
   const editor = new Editor({ extensions: noteExtensions(), content: md, contentType: 'markdown' })
