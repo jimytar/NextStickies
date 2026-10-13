@@ -4,9 +4,11 @@ const api = window.api
 const cards = document.getElementById('cards')!
 const search = document.getElementById('search') as HTMLInputElement
 const status = document.getElementById('status')!
+const syncBtn = document.getElementById('sync')!
 
 renderIcons()
 document.getElementById('new')!.onclick = () => api.list.newNote()
+syncBtn.onclick = () => api.syncNow()
 document.getElementById('settings')!.onclick = () => api.list.settings()
 document.getElementById('close')!.onclick = () => api.list.close()
 document.addEventListener('keydown', e => {
@@ -14,8 +16,12 @@ document.addEventListener('keydown', e => {
 })
 search.oninput = () => void refresh()
 api.list.onChanged(() => void refresh())
-api.onStatus(s => (status.textContent = s))
-void api.status().then(s => (status.textContent = s))
+function showStatus(s: string) {
+  status.textContent = s
+  syncBtn.classList.toggle('spinning', s === 'Syncing…')
+}
+api.onStatus(showStatus)
+void api.status().then(showStatus)
 
 async function refresh() {
   const notes = await api.list.notes(search.value)
