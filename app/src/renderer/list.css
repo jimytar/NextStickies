@@ -1,8 +1,7 @@
 body { background: var(--win-bg); display: flex; flex-direction: column; padding: 4px 12px 12px; }
 header { display: flex; height: 40px; align-items: center; }
 .spacer { flex: 1; }
-h1 { font-size: 24px; margin: 0 0 12px 4px; }
-.search { position: relative; margin-bottom: 6px; }
+.search { position: relative; margin: 4px 0 6px; }
 .search input { height: 38px; border: 0; padding: 0 36px 0 12px; }
 .search span { position: absolute; right: 12px; top: 11px; color: #c8c8c8; pointer-events: none; }
 #status { color: var(--muted); font-size: 11px; margin: 0 0 8px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
