@@ -1,5 +1,5 @@
-**/node_modules/
-app/dist/
-app/release/
-out/
 .git/
+out/
+**/node_modules/
+frontend/dist/
+*.syso

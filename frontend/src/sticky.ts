@@ -3,16 +3,20 @@ import Placeholder from '@tiptap/extension-placeholder'
 import 'emoji-picker-element'
 import { noteExtensions } from './extensions'
 import { renderIcons } from './icons'
-import type { LoadPayload } from './api'
+import { api as appApi, type LoadPayload } from './api'
 
-const api = window.api.sticky
+const api = appApi.sticky
 // Resolved before <base> is pointed at the note's folder for images.
 const emojiData = new URL('emoji-data.json', location.href).href
 const base = document.head.appendChild(document.createElement('base'))
 
 renderIcons()
 document.getElementById('new')!.onclick = () => api.newNote()
-document.getElementById('menu')!.onclick = () => api.menu()
+const menuBtn = document.getElementById('menu')!
+menuBtn.onclick = () => {
+  const r = menuBtn.getBoundingClientRect()
+  api.menu(r.left, r.bottom)
+}
 document.getElementById('close')!.onclick = () => api.close()
 
 const editor = new Editor({
@@ -107,7 +111,7 @@ for (const button of document.querySelectorAll<HTMLButtonElement>('#toolbar butt
   button.addEventListener('click', () => void actions[button.dataset.action!].run())
 }
 
-/** Electron has no window.prompt: a small modal <dialog> instead. Resolves null on cancel. */
+/** The webviews have no usable window.prompt: a small modal <dialog> instead. Resolves null on cancel. */
 function askLink(value: string): Promise<string | null> {
   const dialog = document.getElementById('link-dialog') as HTMLDialogElement
   const input = dialog.querySelector('input')!

@@ -25,14 +25,17 @@ From [Releases](https://github.com/jimytar/NextStickies/releases):
 - **Windows:** run `NextStickies-Setup-<version>.exe`. Per user (no admin), installs to
   `%LOCALAPPDATA%\Programs\NextStickies`, Start menu entry and Apps & features uninstaller. Upgrades close the
   running app first; notes and settings are kept on upgrade and uninstall.
-- **Linux:** download `NextStickies-<version>-x86_64.AppImage`, `chmod +x` it and run it. Needs FUSE 2
-  (`sudo apt install libfuse2t64`, or `libfuse2` on older releases); without it run with
-  `--appimage-extract-and-run`. If it exits with a sandbox error (distros that restrict unprivileged user
-  namespaces), start it with `--no-sandbox`.
+- **Windows** needs the WebView2 runtime, which is part of Windows 11 and current Windows 10.
+- **Linux (Debian, Ubuntu, Mint):** download `nextstickies_<version>_amd64.deb` and install it with
+  `sudo apt install ./nextstickies_<version>_amd64.deb` (pulls in GTK 3 and WebKitGTK 4.1). Start it from the menu.
+
+Upgrading from the Electron versions (≤ 1.1): settings, notes and sticky positions carry over. On Windows the saved
+app password carries over too; on Linux re-enter it once, and remove the old AppImage (an existing "Start on login"
+entry is pointed at the new app automatically).
 
 Upgrading from "NC Sticky Notes" (1.x/2.0): the installer replaces the old install (keeping "Start with Windows")
 and the app moves the old `NcStickyNotes` data folder on first start; notes, sticky positions, sync state and the
-saved app password carry over. On Linux, re-enter the app password once after switching to the renamed AppImage.
+saved app password carry over.
 
 ## Setup
 1. Nextcloud → Settings → Security → create an **app password**.
@@ -42,16 +45,22 @@ saved app password carry over. On Linux, re-enter the app password once after sw
 ## Build
 Everything builds in Docker (same as CI), so only Docker with buildx is needed:
 ```
-./build.sh                  # tests, Windows app → out/app, AppImage → out/linux, installer → out/installer
-./build.sh app              # tested Windows app + AppImage
+./build.sh                  # tests, Windows app → out/app, .deb → out/linux, installer → out/installer
+./build.sh app              # tested Windows app + .deb
 ./build.sh installer <dir>  # installer from a Windows app dir (CI passes the signed copy)
 VERSION=1.2.3 ./build.sh    # default: next version from scripts/next-version.sh
 ```
-Development: `cd app && npm ci && npm test && npm start` (Electron).
+Development: the app is Go + [Wails v3](https://v3.wails.io/) with the editor pages in `frontend/` (TypeScript).
+```
+(cd frontend && npm ci && npm test && npm run build)   # pages → frontend/dist, embedded into the binary
+go test ./internal/...                                  # sync/store tests
+go run -tags gtk3 .                                     # Linux: needs libgtk-3-dev libwebkit2gtk-4.1-dev
+GOOS=windows go build -ldflags -H=windowsgui .          # Windows exe (no cgo needed)
+```
 
 ## Releases
 `.github/workflows/release.yaml` runs on the self-hosted `next-stickies-runner`. Every push to `main` builds,
-tests and publishes a GitHub release (Windows installer + AppImage) tagged `vX.Y.Z`, versioned from Conventional Commits since the last tag
+tests and publishes a GitHub release (Windows installer + .deb) tagged `vX.Y.Z`, versioned from Conventional Commits since the last tag
 (`feat` → minor, `type!:`/`BREAKING CHANGE` → major, anything else → patch). Pull requests build and upload the
 packages as a workflow artifact only.
 
@@ -72,11 +81,14 @@ not transfer any information to other networked systems unless specifically requ
 Nextcloud server you configure).
 
 ## Layout
-- `app/src/main/` — Electron main process: `store.ts` (local files + metadata), `webdav.ts`, `sync.ts`
-  (3-way sync), `settings.ts`, `main.ts` (windows, tray, IPC).
-- `app/src/renderer/` — notes list, sticky note (Tiptap editor), settings pages; `app/src/preload.ts` bridge.
-- `app/test/` — sync tests against an in-memory WebDAV server, markdown round-trip tests.
-- `installer/` — NSIS per-user installer. `Dockerfile` — build stages. `scripts/next-version.sh` — release version.
+- `internal/notes/` — `store.go` (local files + metadata), `webdav.go`, `sync.go` (3-way sync), tests against an
+  in-memory WebDAV server.
+- `main.go` / `app.go` — app start, windows, tray, menus and the API the pages call; `settings.go`,
+  `secret_*.go` (password encryption), `autostart_*.go`.
+- `frontend/` — notes list, sticky note (Tiptap editor), settings pages; `src/api.ts` talks to the Go side;
+  markdown round-trip tests.
+- `build/` — icons, Windows resource generator (`winres/`), Linux `.deb` files. `installer/` — NSIS per-user
+  installer. `Dockerfile` — build stages. `scripts/next-version.sh` — release version.
 
 ## License
 MIT

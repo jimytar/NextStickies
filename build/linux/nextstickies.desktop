@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=NextStickies
+Comment=Sticky notes synced with Nextcloud Notes
+Exec=nextstickies
+Icon=nextstickies
+Terminal=false
+Categories=Office;Utility;
+StartupWMClass=com.jimytar.nextstickies

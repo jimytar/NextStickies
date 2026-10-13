@@ -109,7 +109,7 @@ jobs:
           name: packages
           path: |
             out/installer/*.exe
-            out/linux/*.AppImage
+            out/linux/*.deb
 
       - name: Release
         if: steps.version.outputs.release == 'true'
@@ -121,4 +121,4 @@ jobs:
           generate_release_notes: true
           files: |
             out/installer/*.exe
-            out/linux/*.AppImage
+            out/linux/*.deb
