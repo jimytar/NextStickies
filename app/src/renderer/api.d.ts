@@ -13,6 +13,8 @@ declare global {
         init(): Promise<LoadPayload | null>
         changed(markdown: string): void
         pasteImage(data: Uint8Array, mime: string, name: string): Promise<{ src?: string; error?: string }>
+        fetchImage(url: string): Promise<{ data: Uint8Array; mime: string } | null>
+        copyImage(png: Uint8Array): Promise<void>
         openLink(href: string): void
         newNote(): void
         setColor(hex: string): void

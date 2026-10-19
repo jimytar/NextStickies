@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld('api', {
     init: () => ipcRenderer.invoke('sticky:init'),
     changed: (markdown: string) => ipcRenderer.send('sticky:changed', markdown),
     pasteImage: (data: Uint8Array, mime: string, name: string) => ipcRenderer.invoke('sticky:pasteImage', data, mime, name),
+    fetchImage: (url: string) => ipcRenderer.invoke('sticky:fetchImage', url),
+    copyImage: (png: Uint8Array) => ipcRenderer.invoke('sticky:copyImage', png),
     openLink: (href: string) => ipcRenderer.send('sticky:openLink', href),
     newNote: () => ipcRenderer.send('sticky:new'),
     setColor: (hex: string) => ipcRenderer.send('sticky:color', hex),

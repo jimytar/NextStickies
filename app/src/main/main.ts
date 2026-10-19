@@ -1,7 +1,7 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { app, BrowserWindow, ipcMain, Menu, nativeImage, nativeTheme, net, protocol, screen, shell, Tray } from 'electron'
+import { app, BrowserWindow, clipboard, ClipboardItem, ipcMain, Menu, nativeImage, nativeTheme, net, protocol, screen, shell, Tray } from 'electron'
 import { NOTE_COLORS } from '../colors'
 import { NoteMeta, NoteStore, parentOf, titleOf } from './store'
 import { SyncEngine, SyncResult } from './sync'
@@ -335,6 +335,18 @@ async function addImage(s: Sticky, data: Uint8Array, mime: string, name: string)
   return { src }
 }
 
+/** Reads an image shown in a note (notes:// or http(s)) for the renderer to decode; http(s) is CORS-blocked there. */
+async function fetchImage(url: string) {
+  try {
+    if (!['notes:', 'http:', 'https:'].includes(new URL(url).protocol)) return null
+    const res = await net.fetch(url)
+    if (!res.ok) return null
+    return { data: new Uint8Array(await res.arrayBuffer()), mime: res.headers.get('content-type') ?? '' }
+  } catch {
+    return null
+  }
+}
+
 function openExternal(url: string) {
   try {
     if (['http:', 'https:', 'mailto:'].includes(new URL(url).protocol)) void shell.openExternal(url)
@@ -370,6 +382,9 @@ function registerIpc() {
     const s = stickyOf(e.sender)
     return s ? addImage(s, data, mime, name) : { error: 'Note window not found' }
   })
+  ipcMain.handle('sticky:fetchImage', (_e, url: string) => fetchImage(url))
+  ipcMain.handle('sticky:copyImage', (_e, png: Uint8Array) =>
+    clipboard.write([new ClipboardItem({ 'image/png': new Blob([new Uint8Array(png)], { type: 'image/png' }) })]))
   ipcMain.on('sticky:openLink', (_e, href: string) => openExternal(href))
   ipcMain.on('sticky:new', () => openSticky(store.newMeta()))
   ipcMain.on('sticky:color', (e, hex: string) => {

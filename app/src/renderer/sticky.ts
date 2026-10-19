@@ -1,4 +1,5 @@
 import { Editor } from '@tiptap/core'
+import { NodeSelection } from '@tiptap/pm/state'
 import Placeholder from '@tiptap/extension-placeholder'
 import 'emoji-picker-element'
 import { NOTE_COLORS } from '../colors'
@@ -72,6 +73,10 @@ const editor = new Editor({
   editorProps: {
     handlePaste: (_view, event) => sendImages(event.clipboardData?.files),
     handleDrop: (_view, event) => sendImages((event as DragEvent).dataTransfer?.files),
+    handleDOMEvents: {
+      copy: (_view, event) => copyImage(event, false),
+      cut: (_view, event) => copyImage(event, true),
+    },
     handleClick: (_view, _pos, event) => {
       const a = (event.target as HTMLElement).closest('a')
       if (a && (event.ctrlKey || event.metaKey)) {
@@ -127,6 +132,40 @@ function sendImages(files: FileList | undefined | null): boolean {
     })
   }
   return images.length > 0
+}
+
+/** A selected image is copied as the picture itself (pasteable anywhere), not as HTML with a notes:// link. */
+function copyImage(event: ClipboardEvent, cut: boolean): boolean {
+  const sel = editor.state.selection
+  if (!(sel instanceof NodeSelection) || sel.node.type.name !== 'image') return false
+  event.preventDefault()
+  toPng(new URL(sel.node.attrs.src, document.baseURI).href)
+    .then(png => api.copyImage(png))
+    .catch(() => showError('Could not copy the image.'))
+  if (cut) editor.commands.deleteSelection()
+  return true
+}
+
+/** Any format the note can show (PNG, JPEG, GIF, WebP, SVG) as PNG bytes; animations give their first frame. */
+async function toPng(url: string): Promise<Uint8Array> {
+  const img = await api.fetchImage(url)
+  if (!img) throw new Error('fetch failed')
+  // A blob: URL is same-origin, so the canvas stays readable (the notes:// <img> in the note would taint it).
+  const blobUrl = URL.createObjectURL(new Blob([new Uint8Array(img.data)], { type: img.mime }))
+  try {
+    const el = new Image()
+    el.src = blobUrl
+    await el.decode()
+    const canvas = document.createElement('canvas')
+    canvas.width = el.naturalWidth || 300 // an SVG without width/height has no natural size
+    canvas.height = el.naturalHeight || 150
+    canvas.getContext('2d')!.drawImage(el, 0, 0, canvas.width, canvas.height)
+    const png = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'))
+    if (!png) throw new Error('encode failed')
+    return new Uint8Array(await png.arrayBuffer())
+  } finally {
+    URL.revokeObjectURL(blobUrl)
+  }
 }
 
 function showError(message: string) {
