@@ -12,7 +12,10 @@ desktop stickies on every machine show the same notes.
 - WYSIWYG editor (Tiptap — same engine as Nextcloud Text): heading, bold, italic, strikethrough, bullets,
   checklists, links, emoji picker, paste/drop/attach images. Files stay plain markdown.
 - Images are stored the Nextcloud way: `.attachments.<fileId>/name.png` next to the note.
-- Color, position, size, open/closed are per machine (`metadata.json`), never written into notes.
+- Note menu (⋯) with a color strip, notes list and delete; a pin button keeps a note on top of other windows.
+  Unfocused notes collapse to a thin colored strip, like Windows Sticky Notes.
+- Deleting asks first ("Don't ask me again" turns that off; turn it back on in Settings).
+- Color, pin, position, size, open/closed are per machine (`metadata.json`), never written into notes.
 - Sync: on start, 2 s after edits, every 60 s, and "Sync now". If a note changed on both sides, the newest edit
   wins. Locks left by the Nextcloud Text web editor are removed so edits from the app go through.
 - Works offline; the app password is encrypted with the OS keystore (DPAPI on Windows, Secret Service on Linux).
